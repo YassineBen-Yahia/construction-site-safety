@@ -15,7 +15,7 @@ class DangerousPoseDetector:
     # Keypoint indices
     
     
-    def __init__(self, estimator):
+    def __init__(self, estimator=None):
         """Initialize pose detection model"""
         if isinstance(estimator, PoseEstimator):
             self.model = estimator
@@ -160,14 +160,14 @@ class DangerousPoseDetector:
                     })
     
         # Draw results
-        annotated_frame = results[0].plot()
+        #annotated_frame = results[0].plot()
         
         # Add danger warnings
-        y_offset = 30
-        for danger in dangers:
-            for msg in danger['dangers']:
-                cv2.putText(annotated_frame, msg, (10, y_offset),
-                           cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
-                y_offset += 25
+        #y_offset = 30
+        #for danger in dangers:
+        #    for msg in danger['dangers']:
+        #        cv2.putText(annotated_frame, msg, (10, y_offset),
+        #                   cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0, 0, 255), 2)
+        #        y_offset += 25
         
-        return annotated_frame, dangers
+        return dangers
