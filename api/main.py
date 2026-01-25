@@ -49,6 +49,36 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 processing_jobs = {}
 
 
+@app.get("/", tags=["Root"])
+async def root():
+    """
+    Root endpoint - API welcome page
+    """
+    return {
+        "message": "Construction Site Safety Monitoring API",
+        "version": "1.0.0",
+        "documentation": "/docs",
+        "redoc": "/redoc",
+        "health": "/health",
+        "endpoints": {
+            "video_processing": "/api/v1/process-video",
+            "job_status": "/api/v1/job/{job_id}",
+            "download": "/api/v1/download/{job_id}",
+            "list_jobs": "/api/v1/jobs",
+            "delete_job": "/api/v1/job/{job_id}",
+            "statistics": "/api/v1/stats",
+            "analyze_frame": "/api/v1/analyze-frame"
+        }
+    }
+
+
+@app.get("/favicon.ico", tags=["Root"])
+async def favicon():
+    """
+    Favicon endpoint - prevents 404 errors
+    """
+    return {"message": "No favicon"}
+
 @app.get("/health", tags=["Health"])
 async def health_check():
     """
