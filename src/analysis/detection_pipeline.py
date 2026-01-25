@@ -74,10 +74,12 @@ def process_frame(frame):
             person_dangers.append(msg)
         
         ppe_list = [f['class'] for f in data['ppe']]
+
+        depth_map = depth_estimator.estimate_depth(frame)
         
         # Check for vehicles/machinery nearby
         s, details = detect_vehicle_near_person(
-            person_box, detections, None, depth_estimator
+            person_box, detections, depth_map, depth_estimator
         )
         if s:
             person_dangers.append("Vehicle or machinery detected near person - risk of accidents")
