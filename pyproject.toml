@@ -6,5 +6,7 @@ readme = "README.md"
 requires-python = ">=3.12"
 dependencies = [
     "dvc>=3.66.1",
+    "mediapipe>=0.10.31",
+    "mlflow>=3.8.1",
     "ultralytics>=8.4.6",
 ]
