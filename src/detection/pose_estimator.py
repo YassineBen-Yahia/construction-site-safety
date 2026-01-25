@@ -17,6 +17,6 @@ class PoseEstimator:
     
     def get_keypoints_coordinates(self, frame):
         results = self.model(frame)
-        s=results[0].keypoints.xy.tolist()
-        keypoints = s  # Assuming single person detection
+        s=results[0].keypoints.xy
+        keypoints = [kp.tolist() for kp in s]
         return keypoints,results
