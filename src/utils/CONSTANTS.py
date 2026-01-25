@@ -9,3 +9,6 @@ KEYPOINTS = {
         'left_ankle': 15, 'right_ankle': 16
     }
 
+
+PPE_CLASSES =  ['Hardhat', 'Mask', 'NO-Hardhat', 'NO-Mask', 'NO-Safety Vest', 'Person', 'Safety Cone', 'Safety Vest', 'machinery', 'vehicle']
+
