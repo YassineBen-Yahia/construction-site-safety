@@ -115,7 +115,7 @@ class DangerousPoseDetector:
             
             # Threshold: offset should not exceed 0.8x shoulder width
             if normalized_offset > 0.65:
-                return True, normalized_offset, f"Imbalanced stance - fall risk (offset: {normalized_offset:.2f}x shoulder width)"
+                return True, normalized_offset, f"Imbalanced stance - fall risk "
         
         return False, None, None
     

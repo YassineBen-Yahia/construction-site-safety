@@ -193,7 +193,7 @@ def run_all_tests(base_url="http://localhost:8000"):
     
     # Test 1: Health check
     if not test_health_check(base_url):
-        print("\n❌ API is not running! Start it with:")
+        print("\n API is not running! Start it with:")
         print("   python -m uvicorn api.main:app --reload")
         return
     
