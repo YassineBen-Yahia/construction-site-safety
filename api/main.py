@@ -13,8 +13,15 @@ from fastapi.staticfiles import StaticFiles
 from fastapi.middleware.cors import CORSMiddleware
 import os
 import uuid
+import json
 from datetime import datetime
 import logging
+from typing import Optional
+
+try:
+    import redis
+except ImportError:  # Redis is optional
+    redis = None
 
 from src.inference.inference import process_video
 from src.inference.danger_scoring import score_safety
@@ -39,6 +46,29 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Redis configuration (optional)
+REDIS_URL = os.getenv("REDIS_URL", "redis://localhost:6379/0")
+REDIS_TTL_SECONDS = 24 * 60 * 60  # 1 day
+
+
+def get_redis_client() -> Optional["redis.Redis"]:
+    """Return a Redis client if redis-py is installed and reachable."""
+    if redis is None:
+        return None
+    try:
+        client = redis.from_url(REDIS_URL)
+        print(f"Connecting to Redis at {REDIS_URL}")
+        client.ping()
+        print("Connected to Redis successfully")
+        return client
+    except Exception:
+        return None
+
+
+redis_client = get_redis_client()
+
+
+
 # Create directories for uploads and outputs
 UPLOAD_DIR = Path(__file__).parent.parent / "uploads"
 OUTPUT_DIR = Path(__file__).parent.parent / "outputs"
@@ -47,6 +77,39 @@ OUTPUT_DIR.mkdir(exist_ok=True)
 
 # Store processing jobs
 processing_jobs = {}
+
+
+def cache_job(job_id: str, payload: dict):
+    """Cache job metadata in Redis (best-effort)."""
+    if redis_client is None:
+        return
+    try:
+        redis_client.set(f"job:{job_id}", json.dumps(payload), ex=REDIS_TTL_SECONDS)
+    except Exception:
+        pass
+
+
+def fetch_cached_job(job_id: str) -> Optional[dict]:
+    """Fetch cached job metadata from Redis."""
+    if redis_client is None:
+        return None
+    try:
+        cached = redis_client.get(f"job:{job_id}")
+        if cached:
+            return json.loads(cached)
+    except Exception:
+        return None
+    return None
+
+
+def delete_cached_job(job_id: str):
+    """Remove cached job metadata."""
+    if redis_client is None:
+        return
+    try:
+        redis_client.delete(f"job:{job_id}")
+    except Exception:
+        pass
 
 
 @app.get("/", tags=["Root"])
@@ -142,6 +205,7 @@ async def process_video_endpoint(
             "stats": None,
             "error": None
         }
+        cache_job(job_id, processing_jobs[job_id])
         
         # Add background task to process video
         if background_tasks:
@@ -178,6 +242,10 @@ async def get_job_status(job_id: str):
     Returns:
     - Job status and results
     """
+    cached = fetch_cached_job(job_id)
+    if cached:
+        return cached
+
     if job_id not in processing_jobs:
         raise HTTPException(status_code=404, detail="Job not found")
     
@@ -276,6 +344,7 @@ async def delete_job(job_id: str):
     
     # Remove job record
     del processing_jobs[job_id]
+    delete_cached_job(job_id)
     
     return {"message": f"Job {job_id} deleted successfully"}
 
@@ -397,6 +466,7 @@ def process_video_background(job_id: str, input_path: str, output_path: str):
         processing_jobs[job_id]["status"] = "completed"
         processing_jobs[job_id]["stats"] = stats
         processing_jobs[job_id]["completed_at"] = datetime.now().isoformat()
+        cache_job(job_id, processing_jobs[job_id])
         
         logger.info(f"Video processing completed for job {job_id}")
     
@@ -404,6 +474,7 @@ def process_video_background(job_id: str, input_path: str, output_path: str):
         logger.error(f"Error processing video {job_id}: {str(e)}")
         processing_jobs[job_id]["status"] = "failed"
         processing_jobs[job_id]["error"] = str(e)
+        cache_job(job_id, processing_jobs[job_id])
 
 
 if __name__ == "__main__":

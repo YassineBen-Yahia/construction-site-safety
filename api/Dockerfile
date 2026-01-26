@@ -1,5 +1,7 @@
 FROM python:3.11-slim
 
+
+#RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
 WORKDIR /app
 
 # Install system dependencies
@@ -10,7 +12,7 @@ RUN apt-get update && apt-get install -y \
     libgomp1 \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy project files
+# Copy project files    
 COPY . /app/
 
 # Install Python dependencies

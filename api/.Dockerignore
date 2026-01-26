@@ -3,3 +3,4 @@
 *data/valid/
 *data/test/
 __pycache__/
+src\analysis\depth_analysor.py
