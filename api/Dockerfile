@@ -1,23 +1,33 @@
 FROM python:3.11-slim
 
-
-#RUN pip install --no-cache-dir torch torchvision --index-url https://download.pytorch.org/whl/cpu
 WORKDIR /app
 
-# Install system dependencies
+# Install system dependencies (including OpenCV requirements)
 RUN apt-get update && apt-get install -y \
     libsm6 \
     libxext6 \
     libxrender-dev \
     libgomp1 \
+    libglib2.0-0 \
+    libgl1 \
+    libgtk2.0-dev \
     && rm -rf /var/lib/apt/lists/*
 
-# Copy project files    
-COPY . /app/
+# Install PyTorch CPU version FIRST (before copying files for better caching)
+RUN pip install --no-cache-dir \
+    torch torchvision \
+    --index-url https://download.pytorch.org/whl/cpu
+
+# Copy only requirements files first (better Docker layer caching)
+COPY api/requirements.txt /app/api/requirements.txt
+COPY requirements.txt /app/requirements.txt
 
 # Install Python dependencies
-RUN pip install --no-cache-dir -r api/requirements.txt
-RUN pip install --no-cache-dir -r requirements.txt
+RUN pip install --no-cache-dir --timeout=1000 -r api/requirements.txt && \
+    pip install --no-cache-dir --timeout=1000 -r requirements.txt
+
+# Copy rest of project files
+COPY . /app/
 
 # Create necessary directories
 RUN mkdir -p uploads outputs logs models/ppe models/pose_estimation
