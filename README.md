@@ -1,4 +1,4 @@
-# Construction Site Safety
+## Construction Site Safety
 
 ## Project Overview
 The Construction Site Safety project is designed to enhance the safety protocols and procedures on construction sites through effective training, monitoring, and reporting. Utilizing Python for backend processing, Jupyter Notebooks for interactive data analysis, and Docker for containerization, this project aims to provide a comprehensive solution for managing construction site safety efficiently.
